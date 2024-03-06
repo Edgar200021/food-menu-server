@@ -19,6 +19,7 @@ type UserHandler struct {
 }
 
 func (u *UserHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Something went wrong", http.StatusBadRequest)
@@ -45,8 +46,10 @@ func (u *UserHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+
 }
 func (u *UserHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
@@ -117,8 +120,13 @@ func (u *UserHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
+	jsonResponse, _ := json.Marshal(user)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
+
 }
 func (u *UserHandler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
+
 	token, err := r.Cookie("refreshToken")
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusForbidden)

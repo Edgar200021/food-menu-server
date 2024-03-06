@@ -31,8 +31,8 @@ func AuthRequired(handler http.HandlerFunc, userStorage storage.UserStorage) htt
 
 		if claims, ok := accessToken.Claims.(jwt.MapClaims), accessToken.Valid; ok {
 
-			layout := "2006-01-02T15:04:05.9999999-07:00"
-			expiresDate, _ := time.Parse(layout, claims["expires"].(string))
+			//layout := "2006-01-02T15:04:05.9999999-07:00"
+			expiresDate, _ := time.Parse(time.RFC3339Nano, claims["expires"].(string))
 
 			if time.Now().After(expiresDate) {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)

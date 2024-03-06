@@ -11,11 +11,13 @@ type User struct {
 	Name     *string `json:"name" db:"name"`
 	Email    string  `json:"email" db:"email"`
 	Password string  `json:"-" db:"password"`
+	Avatar   *string `json:"avatar,omitempty" db:"avatar"`
 }
 
 type CreateUser struct {
 	Email    string `json:"email" `
 	Password string `json:"password"`
+	Name     string `json:"name" db:"name"`
 }
 
 func (createUser *CreateUser) Validate() error {

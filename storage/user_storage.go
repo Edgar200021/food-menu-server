@@ -33,7 +33,7 @@ func (u *UserPgStorage) Create(createUser types.CreateUser) error {
 	}
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(createUser.Password), 10)
-	if _, err := u.DB.Query(context.Background(), "INSERT INTO users (email, password) VALUES ($1, $2)", createUser.Email, hashedPassword); err != nil {
+	if _, err := u.DB.Query(context.Background(), "INSERT INTO users (email, password, name) VALUES ($1, $2, $3)", createUser.Email, hashedPassword, createUser.Name); err != nil {
 		return err
 	}
 
@@ -42,7 +42,7 @@ func (u *UserPgStorage) Create(createUser types.CreateUser) error {
 func (u *UserPgStorage) GetByEmail(email string) (types.User, error) {
 	var user types.User
 
-	if err := pgxscan.Get(context.Background(), u.DB, &user, `SELECT id, name, email, password
+	if err := pgxscan.Get(context.Background(), u.DB, &user, `SELECT id, name, email, password,avatar
 															  FROM users
 															  WHERE email = $1`, email); err != nil {
 
@@ -56,7 +56,7 @@ func (u *UserPgStorage) GetByEmail(email string) (types.User, error) {
 func (u *UserPgStorage) GetById(id int) (types.User, error) {
 	var user types.User
 
-	if err := pgxscan.Get(context.Background(), u.DB, &user, `SELECT id, name, email, password
+	if err := pgxscan.Get(context.Background(), u.DB, &user, `SELECT id, name, email, password,avatar
 															  FROM users
 															  WHERE id = $1`, id); err != nil {
 
