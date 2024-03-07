@@ -22,7 +22,7 @@ func AuthRequired(handler http.HandlerFunc, userStorage storage.UserStorage) htt
 
 		accessToken, _ := jwt.Parse(token.Value, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected string method: %v", token.Header["alg"])
+				return nil, fmt.Errorf("unexpected string method: %v", token.Header["alg"])
 			}
 
 			return []byte(os.Getenv("JWT_SECRET")), nil

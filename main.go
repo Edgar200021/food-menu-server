@@ -36,7 +36,7 @@ func main() {
 		cartProductStorage = &storage.CartProductPgStorage{DB: conn}
 		userHandler        = handlers.UserHandler{UserStorage: userStorage, CartStorage: cartStorage}
 		productHandler     = handlers.ProductHandler{ProductStorage: productStorage}
-		cartProductHandler = handlers.CartProductHandler{CartProductStorage: cartProductStorage}
+		cartProductHandler = handlers.CartProductHandler{CartProductStorage: cartProductStorage, ProductStorage: productStorage}
 	)
 
 	mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("uploads"))))
@@ -50,6 +50,9 @@ func main() {
 	mux.HandleFunc("POST /api/v1/products", middlewares.AuthRequired(productHandler.HandleCreateProduct, userStorage))
 
 	mux.HandleFunc("/api/v1/cart", middlewares.AuthRequired(cartProductHandler.HandleGetAll, userStorage))
+	mux.HandleFunc("POST /api/v1/cart/{id}", middlewares.AuthRequired(cartProductHandler.HandleCreate, userStorage))
+	mux.HandleFunc("PATCH /api/v1/cart/{id}", middlewares.AuthRequired(cartProductHandler.HandleUpdate, userStorage))
+	mux.HandleFunc("DELETE /api/v1/cart/{id}", middlewares.AuthRequired(cartProductHandler.HandleDelete, userStorage))
 
 	handler := cors.New(cors.Options{
 		AllowCredentials: true,
