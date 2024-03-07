@@ -14,30 +14,31 @@ import (
 type UserStorage interface {
 	GetByEmail(email string) (types.User, error)
 	GetById(id int) (types.User, error)
-	Create(createUser types.CreateUser) error
+	Create(createUser types.CreateUser) (int, error)
 }
 
 type UserPgStorage struct {
 	DB *pgxpool.Pool
 }
 
-func (u *UserPgStorage) Create(createUser types.CreateUser) error {
+func (u *UserPgStorage) Create(createUser types.CreateUser) (int, error) {
 
 	user, err := u.GetByEmail(createUser.Email)
 	if err != nil {
-		return errors.New(err.Error())
+		return 0, errors.New(err.Error())
 	}
 
 	if user.Email != "" {
-		return fmt.Errorf("user with email %s already exists", createUser.Email)
+		return 0, fmt.Errorf("user with email %s already exists", createUser.Email)
 	}
 
+	var userId int
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(createUser.Password), 10)
-	if _, err := u.DB.Query(context.Background(), "INSERT INTO users (email, password, name) VALUES ($1, $2, $3)", createUser.Email, hashedPassword, createUser.Name); err != nil {
-		return err
+	if err := u.DB.QueryRow(context.Background(), "INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id", createUser.Email, hashedPassword, createUser.Name).Scan(&userId); err != nil {
+		return 0, err
 	}
 
-	return nil
+	return userId, nil
 }
 func (u *UserPgStorage) GetByEmail(email string) (types.User, error) {
 	var user types.User

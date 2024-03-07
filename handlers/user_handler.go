@@ -15,7 +15,8 @@ import (
 )
 
 type UserHandler struct {
-	UserStorage storage.UserPgStorage
+	UserStorage storage.UserStorage
+	CartStorage storage.CartStorage
 }
 
 func (u *UserHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
@@ -39,14 +40,16 @@ func (u *UserHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = u.UserStorage.Create(user)
-	if err != nil {
+	if userId, err := u.UserStorage.Create(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	} else {
+		if err := u.CartStorage.Create(userId); err != nil {
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
 	}
-
-	w.WriteHeader(http.StatusCreated)
-
 }
 func (u *UserHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
@@ -194,4 +197,27 @@ func (u *UserHandler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 			Path:     "/",
 		})
 	}
+}
+func (u *UserHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
+
+	c := &http.Cookie{
+		Name:     "accessToken",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	}
+
+	c1 := &http.Cookie{
+		Name:     "refreshToken",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, c)
+	http.SetCookie(w, c1)
+	w.WriteHeader(http.StatusNoContent)
+	http.Redirect(w, r, "/", http.StatusFound)
 }

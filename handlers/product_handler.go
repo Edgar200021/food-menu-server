@@ -11,7 +11,7 @@ import (
 )
 
 type ProductHandler struct {
-	ProductStorage storage.ProductPgStorage
+	ProductStorage storage.ProductStorage
 }
 
 func (p *ProductHandler) HandleGetProduct(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +52,7 @@ func (p *ProductHandler) HandleGetProducts(w http.ResponseWriter, r *http.Reques
 			http.Error(w, "Something went wrong", http.StatusInternalServerError)
 			return
 		}
-
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonData)
 	}
 }

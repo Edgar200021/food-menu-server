@@ -30,19 +30,26 @@ func main() {
 
 	mux := http.NewServeMux()
 	var (
-		userStorage    = storage.UserPgStorage{DB: conn}
-		productStorage = storage.ProductPgStorage{DB: conn}
-		userHandler    = handlers.UserHandler{UserStorage: userStorage}
-		productHandler = handlers.ProductHandler{ProductStorage: productStorage}
+		userStorage        = &storage.UserPgStorage{DB: conn}
+		productStorage     = &storage.ProductPgStorage{DB: conn}
+		cartStorage        = &storage.CartPgStorage{DB: conn}
+		cartProductStorage = &storage.CartProductPgStorage{DB: conn}
+		userHandler        = handlers.UserHandler{UserStorage: userStorage, CartStorage: cartStorage}
+		productHandler     = handlers.ProductHandler{ProductStorage: productStorage}
+		cartProductHandler = handlers.CartProductHandler{CartProductStorage: cartProductStorage}
 	)
 
+	mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("uploads"))))
 	mux.HandleFunc("POST /api/v1/auth/sign-up", userHandler.HandleCreate)
 	mux.HandleFunc("POST /api/v1/auth/login", userHandler.HandleLogin)
 	mux.HandleFunc("POST /api/v1/auth/refresh", userHandler.HandleRefresh)
+	mux.HandleFunc("POST /api/v1/auth/logout", middlewares.AuthRequired(userHandler.HandleLogout, userStorage))
 
-	mux.HandleFunc("/api/v1/products/{id}", middlewares.AuthRequired(productHandler.HandleGetProduct, &userStorage))
-	mux.HandleFunc("/api/v1/products", middlewares.AuthRequired(productHandler.HandleGetProducts, &userStorage))
-	mux.HandleFunc("POST /api/v1/products", middlewares.AuthRequired(productHandler.HandleCreateProduct, &userStorage))
+	mux.HandleFunc("/api/v1/products/{id}", middlewares.AuthRequired(productHandler.HandleGetProduct, userStorage))
+	mux.HandleFunc("/api/v1/products", middlewares.AuthRequired(productHandler.HandleGetProducts, userStorage))
+	mux.HandleFunc("POST /api/v1/products", middlewares.AuthRequired(productHandler.HandleCreateProduct, userStorage))
+
+	mux.HandleFunc("/api/v1/cart", middlewares.AuthRequired(cartProductHandler.HandleGetAll, userStorage))
 
 	handler := cors.New(cors.Options{
 		AllowCredentials: true,

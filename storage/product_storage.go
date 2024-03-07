@@ -13,7 +13,7 @@ import (
 type ProductStorage interface {
 	Get(id int) (types.Product, error)
 	GetAll(title string) ([]*types.Product, error)
-	Create(product types.CreateProduct) error
+	Create(product *types.CreateProduct) error
 	Delete(id int) error
 }
 
